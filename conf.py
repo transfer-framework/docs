@@ -29,6 +29,7 @@ sys.path.insert(0, os.path.abspath('../../sphinx-php/sensio'))
 extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
+    'sphinxcontrib.fulltoc',
 ]
 
 lexers['php'] = PhpLexer(startinline=True)
