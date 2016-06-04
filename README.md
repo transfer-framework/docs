@@ -1,12 +1,25 @@
 Transfer Documentation
 ======================
 
-Table of Contents
------------------
+Installation
+------------
 
-* [Framework](framework/index.rst)
-  * [Quick Tour](framework/quick_tour/index.rst)  
-    * [The Big Picture](framework/quick_tour/the_big_picture.rst)
-    * [Adapters (Sources and Targets)](framework/quick_tour/adapters.rst)
-    * [Workers](framework/quick_tour/workers.rst)
-    * [Procedures](framework/quick_tour/procedures.rst)
+We use Sphinx to build our documentation.
+
+Before you start, be sure to install our version of Sphinx:
+
+```
+pip install git+https://github.com/valisj/sphinx
+pip install git+https://github.com/valisj/sphinxcontrib-fulltoc
+```
+
+Building
+--------
+
+Run the following command to build the documentation in HTML format:
+
+```
+make html
+```
+
+Then, open `_build/html/index.html` in your browser.
