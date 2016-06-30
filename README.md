@@ -15,10 +15,14 @@ pip install git+https://github.com/valisj/sphinxcontrib-fulltoc
 
 This requires `pip` to be installed on your system. To install `pip`, follow the [installation instructions](https://pip.pypa.io/en/stable/installing/) on their official documentation.
 
+Clone the repository:
+
+    git clone git@github.com:transfer-framework/docs.git
+
 Building
 --------
 
-Run the following command to build the documentation in HTML format:
+Run the following command in the project root folder to build the documentation in HTML format:
 
 ```
 make html
