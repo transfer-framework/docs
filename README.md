@@ -17,7 +17,7 @@ This requires `pip` to be installed on your system. To install `pip`, follow the
 
 Clone the repository:
 
-    git clone git@github.com:transfer-framework/docs.git
+    git clone https://github.com/transfer-framework/docs.git
 
 Building
 --------
