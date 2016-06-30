@@ -7,7 +7,7 @@ Prerequisites
 This documentation assumes that you know how to setup eZ Platform (previously
 known as eZ Publish) and have done it before. We also assume that you have a
 basic understanding of the content model used by eZ Platform, and how services
-are used to work with content on eZ Platform.
+are used to work with content in eZ Platform.
 
 To learn how to install eZ Platform, check out the
 `Get Started with eZ Platform <https://doc.ez.no/display/DEVELOPER/Get+Started+with+eZ+Platform>`_
