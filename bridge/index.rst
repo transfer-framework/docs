@@ -4,61 +4,31 @@ Bridge
 Introduction
 ------------
 
-Bridge is a PHP library that provides you with common building blocks for consuming APIs. Bridge uses
-:doc:`Transfer </framework/index>` components.
+Writing your own API client from scratch may often take some time. Bridge helps you accelerate and
+ease this process by providing a set of tools for API consumption. These tools help you fetch
+resources, cache API responses and transform data.
+
+Bridge is written in PHP and uses :doc:`Transfer </framework/index>` components internally.
 
 Features
 --------
 
-Seamless integration
-********************
-
-Bridge allows you to convert raw API responses into PHP objects.
-
-.. code-block:: json
-
-    {
-        "name": "John Doe",
-        "age": 22
-    }
-
-So a response from an API, such as the one shown above, will be converted to a `Person` object:
-
-.. code-block:: php
-
-    $person->getName(); // "John Doe"
-    $person->getAge(); // 22
-
-Bridge uses the |symfony_serializer_link| component under the hood.
-
-Virtual properties
-******************
-
-In addition to being able to work with objects, Bridge allows you to define virtual properties. Virtual properties are
-object properties to which values are assigned only when it is needed.
-
-.. code-block:: php
-
-    class Person
-    {
-        private $name;
-        private $age;
-        private $addresses = array();
-    }
-
-Let’s assume you’ve already instantiated `Person` object `$person`. Calling `$person->getAddresses();` will result in
-another call to the API, the response will be saved in `$addresses` and returned by the `getAddresses()` getter method.
-Using virtual properties allows to build your own relational model around the web API.
-
 Caching
 *******
 
-Another major challenge with working with external web APIs is performance loss due to repeated API calls. Bridge has
+Another challenge with working with external web APIs is performance loss due to repeated API calls. Bridge has
 built-in support for caching API responses. This means that subsequent calls will be executed faster, thus improving
 the overall performance.
 
 Bridge uses the file system as its default cache storage provided by the |symfony_cache_component_link| component,
 although any implementation compatible with the |psr_6_standard_link| is supported by Bridge.
+
+Event system
+************
+
+Bridge comes with a built-in event system that lets you hook your own event listeners to a set of events. The listeners can
+access events before and after the execution of an action. This lets an event listener do activities such as modifying
+call arguments or changing an action response.
 
 Web Toolbar in Symfony
 **********************
@@ -80,8 +50,8 @@ By clicking into the Bridge profiler page, you’ll see more details on every ca
 
    *Symfony Profiler details page*
 
-Installation
-------------
+Installing Bridge
+-----------------
 
 Install the latest version using Composer:
 
@@ -141,12 +111,115 @@ Finally, services with defined groups and actions have to be added to the regist
 
     $registry->addService($service);
 
-Defining services in YAML
+Using services in PHP
+---------------------
+
+To execute an action, we first fetch the group to which the action is related, and then call a method
+corresponding to the name of the action and pass the necessary arguments.
+
+.. code-block:: php
+
+    $result = $registry->get('acme_service.math')->add(1, 2);
+
+Adding event listeners/subscribers
+----------------------------------
+
+If you're not familiar with event listeners/subscribers, please read the Symfony's `Event Dispatcher <http://symfony.com/doc/master/event_dispatcher.html>`_
+documentation before moving on.
+
+Event listeners/subscribers are registered by services. To add an event listener, call the `addEventListener` method
+on a service and pass the event type the listener should be activated on and the event listener callable.
+
+.. code-block:: php
+
+    use Bridge\Events\BridgeEvents;
+    use Bridge\Event\PreActionEvent;
+    use Bridge\Event\PostActionEvent;
+
+    class Listener {
+        public function preAction(PreActionEvent $event)
+        {
+        }
+
+        public function postAction(PostActionEvent $event)
+        {
+        }
+    }
+
+    // The callable will be invoked before an action is executed
+    $service->addEventListener(BridgeEvents::PRE_ACTION, array(new Listener(), 'preAction'));
+
+    // The callable will be invoked after an action is executed
+    $service->addEventListener(BridgeEvents::POST_ACTION, array(new Listener(), 'postAction'));
+
+Cache pools
+-----------
+
+Using the default cache pool
+****************************
+
+The default cache pool can be accessed through the registry:
+
+.. code-block:: php
+
+    $pool = $registry->getCachePool('default');
+
+The object returned implements `Psr\\Cache\\CacheItemPoolInterface`.
+
+Adding new cache pools
+**********************
+
+Adding new cache pools is done through the registry:
+
+.. code-block:: php
+
+    $pool = $registry->addCachePool('pool_name', $cachePool);
+
+The `$cachePool` argument must implement `Psr\\Cache\\CacheItemPoolInterface`.
+
+To learn more about how cache pools are used, check out the |psr_6_standard_link| documentation.
+If you are interested in cache pool implementations, check out the |symfony_cache_component_link| component.
+
+Using Bridge with Symfony
 -------------------------
 
-Services can also be defined with YAML. The following YAML configuration reflects the same configuration shown
-previously. Such configuration is added in `app/config/config.yml`. You can also create a separate configuration file
-and import it into the main Symfony configuration file.
+Installing Bridge Bundle
+************************
+
+Install the latest version using Composer:
+
+.. code-block:: bash
+
+    composer require transfer/bridge-bundle
+
+This requires |composer_download_link| to be installed
+on your system.
+
+Then, enable the bundle by adding the following line in the app/AppKernel.php file of your project:
+
+.. code-block:: php
+    :caption: app/AppKernel.php
+    :name: Application kernel file
+
+    class AppKernel extends Kernel
+    {
+      public function registerBundles()
+      {
+          $bundles = array(
+              // ...
+              new Bridge\Bundle\BridgeBundle(),
+          );
+
+          // ...
+      }
+    }
+
+Defining services in YAML
+************************
+
+Services can also be defined in YAML. The following YAML configuration reflects the same configuration shown
+previously in `Defining services in PHP`_. Such configuration is added in `app/config/config.yml`.
+You can also create a separate configuration file and import it into the main Symfony configuration file.
 
 .. code-block:: yml
     :caption: app/config/config.yml
@@ -194,21 +267,8 @@ The option array will be passed as the second argument in the constructor method
     $group = new Group($name, $options);
     $action = new AddAction($name, $options);
 
-
-Note that YAML configuration is currently only supported by the Bridge Bundle in Symfony.
-
-Using services in PHP
----------------------
-
-To execute an action, we first fetch the group to which the action is related, and then call a method
-corresponding to the name of the action and pass the necessary arguments.
-
-.. code-block:: php
-
-    $result = $registry->get('acme_service.math')->add(1, 2);
-
-Using service with Symfony
--------------------------
+Using services via service container
+************************************
 
 With Bridge bundle for Symfony, the registry is going to be registered as a service. All services configured in YAML
 will be automatically connected to the Symfony service.
@@ -223,11 +283,6 @@ If you're fetching the registry in a controller action, you can use a shortcut:
 .. code-block:: php
 
     $registry = $this->get('bridge.registry');
-
-Cache configuration
--------------------
-
-TODO: write about cache pools
 
 Commands
 --------
@@ -275,6 +330,8 @@ registry file contains the Bridge registry with all the associated services.
 
     // return the registry
     return $registry;
+
+Note that the filename of the registry is arbitrary.
 
 Listing services
 ****************
@@ -349,7 +406,58 @@ This `cache:remove` command will remove cache associated with an action call wit
 Configuration reference
 -----------------------
 
-TODO: paste in output of `php debug:config bridge`
+The following section lists all options that are available to configure Bridge.
+
+.. code-block:: yml
+
+    # Default configuration for extension with alias: "bridge"
+    bridge:
+
+        # List of services
+        services:
+
+            # Prototype: Service definition
+            name:
+
+                # Service type
+                type:                 ~
+
+                # Service class
+                class:                Bridge\Service
+
+                # Custom options
+                options:              []
+
+                # List of groups
+                groups:
+
+                    # Prototype: Group definition
+                    name:
+
+                        # Group type
+                        type:                 ~
+
+                        # Group class
+                        class:                Bridge\Group
+
+                        # Custom options
+                        options:              []
+
+                        # List of actions
+                        actions:
+
+                            # Prototype: Action definition
+                            name:
+
+                                # Action type
+                                type:                 ~
+
+                                # Action class
+                                class:                Bridge\Action\NullAction
+
+                                # Custom options
+                                options:              ~
+
 
 .. |composer_download_link| raw:: html
 
